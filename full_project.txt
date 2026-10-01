@@ -1,0 +1,1122 @@
+﻿ 
+=========================================
+📄 file: maven-wrapper.properties
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\.mvn\wrapper\maven-wrapper.properties
+=========================================
+wrapperVersion=3.3.4
+distributionType=only-script
+distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.16/apache-maven-3.9.16-bin.zip
+ 
+ 
+=========================================
+📄 file: RequestTicket.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\dto\ticket\RequestTicket.java
+=========================================
+package com.taha.minihelpdeskapi.dto.ticket;
+
+import com.taha.minihelpdeskapi.enums.Priority;
+import com.taha.minihelpdeskapi.enums.TicketStatus;
+import lombok.Builder;
+
+@Builder
+public record RequestTicket(
+        Long id,
+        String title,
+        String description,
+        TicketStatus status,
+        Priority priority
+) {
+}
+ 
+ 
+=========================================
+📄 file: ResponseTicket.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\dto\ticket\ResponseTicket.java
+=========================================
+package com.taha.minihelpdeskapi.dto.ticket;
+
+import com.taha.minihelpdeskapi.enums.Priority;
+import com.taha.minihelpdeskapi.enums.TicketStatus;
+
+import java.time.LocalDateTime;
+
+public record ResponseTicket(
+        Long id,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        String title,
+        String description,
+        TicketStatus status,
+        Priority priority,
+        Long creatorUserId
+) {
+}
+ 
+ 
+=========================================
+📄 file: RequestUser.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\dto\user\RequestUser.java
+=========================================
+package com.taha.minihelpdeskapi.dto.user;
+
+import com.taha.minihelpdeskapi.enums.Role;
+
+public record RequestUser(
+        String username,
+        String password,
+        Role role
+) {
+}
+ 
+ 
+=========================================
+📄 file: ResponseUser.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\dto\user\ResponseUser.java
+=========================================
+package com.taha.minihelpdeskapi.dto.user;
+
+import com.taha.minihelpdeskapi.enums.Role;
+
+import java.time.LocalDateTime;
+
+public record ResponseUser(
+        Long id,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        String username,
+        Role role
+) {
+}
+ 
+ 
+=========================================
+📄 file: BaseEntity.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\entity\BaseEntity.java
+=========================================
+package com.taha.minihelpdeskapi.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@NoArgsConstructor
+@MappedSuperclass
+@Setter
+public abstract class BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}
+ 
+ 
+=========================================
+📄 file: Ticket.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\entity\Ticket.java
+=========================================
+package com.taha.minihelpdeskapi.entity;
+
+import com.taha.minihelpdeskapi.enums.Priority;
+import com.taha.minihelpdeskapi.enums.TicketStatus;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Getter
+@Setter
+@Table(name = "tickets")
+public class Ticket extends BaseEntity {
+
+
+    @Column(nullable = false)
+    private String title;
+
+    @Column(nullable = false)
+    private String description;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TicketStatus status;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Priority priority;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User createdBy;
+
+}
+ 
+ 
+=========================================
+📄 file: User.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\entity\User.java
+=========================================
+package com.taha.minihelpdeskapi.entity;
+
+import com.taha.minihelpdeskapi.enums.Role;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.List;
+
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
+@Builder
+@Table(name = "users")
+public class User extends BaseEntity {
+
+    @Column(nullable = false, unique = true)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @OneToMany(mappedBy = "createdBy")
+    private List<Ticket> tickets;
+}
+ 
+ 
+=========================================
+📄 file: Priority.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\enums\Priority.java
+=========================================
+package com.taha.minihelpdeskapi.enums;
+
+public enum Priority {
+    LOW,
+    MEDIUM,
+    HIGH
+}
+ 
+ 
+=========================================
+📄 file: Role.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\enums\Role.java
+=========================================
+package com.taha.minihelpdeskapi.enums;
+
+public enum Role {
+    USER,
+    ADMIN
+}
+ 
+ 
+=========================================
+📄 file: TicketStatus.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\enums\TicketStatus.java
+=========================================
+package com.taha.minihelpdeskapi.enums;
+
+public enum TicketStatus {
+    OPEN,
+    IN_PROGRESS,
+    CLOSED
+}
+ 
+ 
+=========================================
+📄 file: TicketNotFoundException.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\exception\TicketNotFoundException.java
+=========================================
+package com.taha.minihelpdeskapi.exception;
+
+public class TicketNotFoundException extends RuntimeException {
+    public TicketNotFoundException(String message) {
+        super(message);
+    }
+}
+ 
+ 
+=========================================
+📄 file: UserNotFoundException.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\exception\UserNotFoundException.java
+=========================================
+package com.taha.minihelpdeskapi.exception;
+
+public class UserNotFoundException extends RuntimeException {
+    public UserNotFoundException(String message) {
+        super(message);
+    }
+}
+ 
+ 
+=========================================
+📄 file: BaseMapper.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\mapper\BaseMapper.java
+=========================================
+package com.taha.minihelpdeskapi.mapper;
+
+import com.taha.minihelpdeskapi.entity.BaseEntity;
+import org.mapstruct.MappingTarget;
+
+public interface BaseMapper<REQUEST, RESPONSE, T extends BaseEntity> {
+
+    REQUEST entityToRequest(T entity);
+
+    T requestToEntity(REQUEST dto);
+
+    void updateEntityWithRequest(REQUEST dto, @MappingTarget T entity);
+
+    T responseToEntity(RESPONSE dto);
+
+    RESPONSE entityToResponse(T entity);
+
+}
+ 
+ 
+=========================================
+📄 file: TicketsMapper.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\mapper\TicketsMapper.java
+=========================================
+package com.taha.minihelpdeskapi.mapper;
+
+import com.taha.minihelpdeskapi.dto.ticket.RequestTicket;
+import com.taha.minihelpdeskapi.dto.ticket.ResponseTicket;
+import com.taha.minihelpdeskapi.entity.Ticket;
+import org.mapstruct.*;
+
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        unmappedSourcePolicy = ReportingPolicy.IGNORE,
+        builder = @org.mapstruct.Builder(disableBuilder = true))
+
+public interface TicketsMapper extends BaseMapper<RequestTicket, ResponseTicket, Ticket> {
+
+
+    @Override
+    RequestTicket entityToRequest(Ticket entity);
+
+    @Override
+    Ticket requestToEntity(RequestTicket dto);
+
+    @Override
+    void updateEntityWithRequest(RequestTicket dto, @MappingTarget Ticket entity);
+
+    @Override
+    @Mapping(source = "creatorUserId", target = "createdBy.id")
+    Ticket responseToEntity(ResponseTicket dto);
+
+    @Override
+    @Mapping (source = "createdBy.id",target = "creatorUserId")
+    ResponseTicket entityToResponse(Ticket entity);
+}
+ 
+ 
+=========================================
+📄 file: UserMapper.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\mapper\UserMapper.java
+=========================================
+package com.taha.minihelpdeskapi.mapper;
+
+import com.taha.minihelpdeskapi.dto.user.RequestUser;
+import com.taha.minihelpdeskapi.dto.user.ResponseUser;
+import com.taha.minihelpdeskapi.entity.User;
+import org.mapstruct.*;
+
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        unmappedSourcePolicy = ReportingPolicy.IGNORE,
+        builder = @org.mapstruct.Builder(disableBuilder = true))
+public interface UserMapper extends BaseMapper<RequestUser, ResponseUser, User>{
+
+    @Override
+    RequestUser entityToRequest(User entity);
+
+    @Override
+    User requestToEntity(RequestUser dto);
+
+    @Override
+    void updateEntityWithRequest(RequestUser dto, @MappingTarget User entity);
+
+    @Override
+    User responseToEntity(ResponseUser dto);
+
+    @Override
+    ResponseUser entityToResponse(User entity);
+}
+ 
+ 
+=========================================
+📄 file: TicketRepository.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\repository\TicketRepository.java
+=========================================
+package com.taha.minihelpdeskapi.repository;
+
+import com.taha.minihelpdeskapi.entity.Ticket;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface TicketRepository extends JpaRepository<Ticket, Long> {
+
+}
+ 
+ 
+=========================================
+📄 file: UserRepository.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\repository\UserRepository.java
+=========================================
+package com.taha.minihelpdeskapi.repository;
+
+import com.taha.minihelpdeskapi.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+    @Query(
+            """
+                    select u from User u where u.username = :username
+                    """
+    )
+    Optional<User> findByUsername(@Param("username") String username);
+}
+ 
+ 
+=========================================
+📄 file: BaseService.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\service\base\BaseService.java
+=========================================
+package com.taha.minihelpdeskapi.service.base;
+
+import com.taha.minihelpdeskapi.entity.BaseEntity;
+
+public interface BaseService<T extends BaseEntity,Q > {
+    T save(T entity);
+
+    T update(T entity,Q request);
+
+    T findById(Long id);
+
+    T deleteById(Long id);
+
+}
+ 
+ 
+=========================================
+📄 file: BaseServiceImpl.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\service\base\BaseServiceImpl.java
+=========================================
+package com.taha.minihelpdeskapi.service.base;
+
+import com.taha.minihelpdeskapi.entity.BaseEntity;
+import com.taha.minihelpdeskapi.mapper.BaseMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+@RequiredArgsConstructor
+public abstract class BaseServiceImpl<
+        T extends BaseEntity,
+        Q,
+        S,
+        M extends BaseMapper<Q, S, T>,
+        R extends JpaRepository<T, Long>
+        > implements BaseService<T,Q> {
+
+    public final R repository;
+    public final M mapper;
+
+
+    @Override
+    public T save(T entity) {
+        return repository.save(entity);
+    }
+
+    @Override
+    public T update (T entity ,Q request) {
+        mapper.updateEntityWithRequest(request, entity);
+        return repository.save(entity);
+    }
+
+    @Override
+    public T deleteById(Long id) {
+        var byId = findById(id);
+        repository.deleteById(byId.getId());
+        return byId;
+    }
+}
+ 
+ 
+=========================================
+📄 file: TicketService.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\service\ticket\TicketService.java
+=========================================
+package com.taha.minihelpdeskapi.service.ticket;
+
+import com.taha.minihelpdeskapi.dto.ticket.RequestTicket;
+import com.taha.minihelpdeskapi.entity.Ticket;
+import com.taha.minihelpdeskapi.service.base.BaseService;
+
+public interface TicketService extends BaseService<Ticket, RequestTicket> {
+}
+ 
+ 
+=========================================
+📄 file: TicketServiceImpl.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\service\ticket\TicketServiceImpl.java
+=========================================
+package com.taha.minihelpdeskapi.service.ticket;
+
+import com.taha.minihelpdeskapi.dto.ticket.RequestTicket;
+import com.taha.minihelpdeskapi.dto.ticket.ResponseTicket;
+import com.taha.minihelpdeskapi.entity.Ticket;
+import com.taha.minihelpdeskapi.exception.TicketNotFoundException;
+import com.taha.minihelpdeskapi.mapper.TicketsMapper;
+import com.taha.minihelpdeskapi.repository.TicketRepository;
+import com.taha.minihelpdeskapi.service.base.BaseServiceImpl;
+import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
+
+@Service
+@Transactional
+public class TicketServiceImpl extends BaseServiceImpl
+        <
+                Ticket,
+                RequestTicket,
+                ResponseTicket,
+                TicketsMapper,
+                TicketRepository
+                > implements TicketService {
+    public TicketServiceImpl(
+            TicketRepository repository,
+            TicketsMapper mapper
+    ) {
+        super(repository, mapper);
+    }
+
+    @Override
+    public Ticket findById(Long id) {
+        return repository
+                .findById(id)
+                .orElseThrow(() -> new TicketNotFoundException("ticket not found whit ID: " + id));
+    }
+}
+ 
+ 
+=========================================
+📄 file: UserService.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\service\user\UserService.java
+=========================================
+package com.taha.minihelpdeskapi.service.user;
+
+import com.taha.minihelpdeskapi.dto.user.RequestUser;
+import com.taha.minihelpdeskapi.entity.User;
+import com.taha.minihelpdeskapi.service.base.BaseService;
+
+public interface UserService extends BaseService<User, RequestUser> {
+    User findByUsername(String username);
+}
+ 
+ 
+=========================================
+📄 file: UserServiceImpl.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\service\user\UserServiceImpl.java
+=========================================
+package com.taha.minihelpdeskapi.service.user;
+
+import com.taha.minihelpdeskapi.dto.user.RequestUser;
+import com.taha.minihelpdeskapi.dto.user.ResponseUser;
+import com.taha.minihelpdeskapi.entity.User;
+import com.taha.minihelpdeskapi.exception.UserNotFoundException;
+import com.taha.minihelpdeskapi.mapper.UserMapper;
+import com.taha.minihelpdeskapi.repository.UserRepository;
+import com.taha.minihelpdeskapi.service.base.BaseServiceImpl;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Transactional
+public class UserServiceImpl extends BaseServiceImpl<
+        User,
+        RequestUser,
+        ResponseUser,
+        UserMapper,
+        UserRepository>
+        implements UserService {
+    public UserServiceImpl(UserRepository repository, UserMapper mapper) {
+        super(repository, mapper);
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        return repository.findByUsername(username)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found with username: " + username
+                        )
+                );
+    }
+
+    @Override
+    public User findById(Long id) {
+        return repository
+                .findById(id)
+                .orElseThrow(()->new UserNotFoundException("user not found with ID: " + id));
+    }
+
+
+}
+ 
+ 
+=========================================
+📄 file: GlobalExceptionHandler.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\util\GlobalExceptionHandler.java
+=========================================
+package com.taha.minihelpdeskapi.util;
+
+import com.taha.minihelpdeskapi.exception.TicketNotFoundException;
+import com.taha.minihelpdeskapi.exception.UserNotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.LocalDateTime;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    public record ApiError(String message, HttpStatus status, LocalDateTime timestamp) {
+        public ApiError(Exception e, HttpStatus status) {
+            this(e.getMessage(), status, LocalDateTime.now());
+        }
+
+    }
+
+    private ResponseEntity<ApiError> handleException(Exception exception, HttpStatus status) {
+        return new ResponseEntity<>(new ApiError(exception, status), status);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleUserNotFoundException(
+            UserNotFoundException exception) {
+        return handleException(exception, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleTicketNotFoundException(
+            TicketNotFoundException exception) {
+        return handleException(exception, HttpStatus.NOT_FOUND);
+    }
+}
+ 
+ 
+=========================================
+📄 file: MiniHelpdeskApiApplication.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\MiniHelpdeskApiApplication.java
+=========================================
+package com.taha.minihelpdeskapi;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class MiniHelpdeskApiApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(MiniHelpdeskApiApplication.class, args);
+    }
+
+}
+ 
+ 
+=========================================
+📄 file: MiniHelpdeskApiApplicationTests.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\test\java\com\taha\minihelpdeskapi\MiniHelpdeskApiApplicationTests.java
+=========================================
+package com.taha.minihelpdeskapi;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class MiniHelpdeskApiApplicationTests {
+
+    @Test
+    void contextLoads() {
+    }
+
+}
+ 
+ 
+=========================================
+📄 file: TicketsMapperImpl.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\target\generated-sources\annotations\com\taha\minihelpdeskapi\mapper\TicketsMapperImpl.java
+=========================================
+package com.taha.minihelpdeskapi.mapper;
+
+import com.taha.minihelpdeskapi.dto.ticket.RequestTicket;
+import com.taha.minihelpdeskapi.dto.ticket.ResponseTicket;
+import com.taha.minihelpdeskapi.entity.Ticket;
+import com.taha.minihelpdeskapi.entity.User;
+import com.taha.minihelpdeskapi.enums.Priority;
+import com.taha.minihelpdeskapi.enums.TicketStatus;
+import java.time.LocalDateTime;
+import javax.annotation.processing.Generated;
+import org.springframework.stereotype.Component;
+
+@Generated(
+    value = "org.mapstruct.ap.MappingProcessor",
+    date = "2026-10-01T15:12:05+0330",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.12 (Microsoft)"
+)
+@Component
+public class TicketsMapperImpl implements TicketsMapper {
+
+    @Override
+    public RequestTicket entityToRequest(Ticket entity) {
+        if ( entity == null ) {
+            return null;
+        }
+
+        Long id = null;
+        String title = null;
+        String description = null;
+        TicketStatus status = null;
+        Priority priority = null;
+
+        id = entity.getId();
+        title = entity.getTitle();
+        description = entity.getDescription();
+        status = entity.getStatus();
+        priority = entity.getPriority();
+
+        RequestTicket requestTicket = new RequestTicket( id, title, description, status, priority );
+
+        return requestTicket;
+    }
+
+    @Override
+    public Ticket requestToEntity(RequestTicket dto) {
+        if ( dto == null ) {
+            return null;
+        }
+
+        Ticket ticket = new Ticket();
+
+        ticket.setId( dto.id() );
+        ticket.setTitle( dto.title() );
+        ticket.setDescription( dto.description() );
+        ticket.setStatus( dto.status() );
+        ticket.setPriority( dto.priority() );
+
+        return ticket;
+    }
+
+    @Override
+    public void updateEntityWithRequest(RequestTicket dto, Ticket entity) {
+        if ( dto == null ) {
+            return;
+        }
+
+        if ( dto.id() != null ) {
+            entity.setId( dto.id() );
+        }
+        if ( dto.title() != null ) {
+            entity.setTitle( dto.title() );
+        }
+        if ( dto.description() != null ) {
+            entity.setDescription( dto.description() );
+        }
+        if ( dto.status() != null ) {
+            entity.setStatus( dto.status() );
+        }
+        if ( dto.priority() != null ) {
+            entity.setPriority( dto.priority() );
+        }
+    }
+
+    @Override
+    public Ticket responseToEntity(ResponseTicket dto) {
+        if ( dto == null ) {
+            return null;
+        }
+
+        Ticket ticket = new Ticket();
+
+        ticket.setCreatedBy( responseTicketToUser( dto ) );
+        ticket.setId( dto.id() );
+        ticket.setCreatedAt( dto.createdAt() );
+        ticket.setUpdatedAt( dto.updatedAt() );
+        ticket.setTitle( dto.title() );
+        ticket.setDescription( dto.description() );
+        ticket.setStatus( dto.status() );
+        ticket.setPriority( dto.priority() );
+
+        return ticket;
+    }
+
+    @Override
+    public ResponseTicket entityToResponse(Ticket entity) {
+        if ( entity == null ) {
+            return null;
+        }
+
+        Long creatorUserId = null;
+        Long id = null;
+        LocalDateTime createdAt = null;
+        LocalDateTime updatedAt = null;
+        String title = null;
+        String description = null;
+        TicketStatus status = null;
+        Priority priority = null;
+
+        creatorUserId = entityCreatedById( entity );
+        id = entity.getId();
+        createdAt = entity.getCreatedAt();
+        updatedAt = entity.getUpdatedAt();
+        title = entity.getTitle();
+        description = entity.getDescription();
+        status = entity.getStatus();
+        priority = entity.getPriority();
+
+        ResponseTicket responseTicket = new ResponseTicket( id, createdAt, updatedAt, title, description, status, priority, creatorUserId );
+
+        return responseTicket;
+    }
+
+    protected User responseTicketToUser(ResponseTicket responseTicket) {
+        if ( responseTicket == null ) {
+            return null;
+        }
+
+        User user = new User();
+
+        user.setId( responseTicket.creatorUserId() );
+
+        return user;
+    }
+
+    private Long entityCreatedById(Ticket ticket) {
+        if ( ticket == null ) {
+            return null;
+        }
+        User createdBy = ticket.getCreatedBy();
+        if ( createdBy == null ) {
+            return null;
+        }
+        Long id = createdBy.getId();
+        if ( id == null ) {
+            return null;
+        }
+        return id;
+    }
+}
+ 
+ 
+=========================================
+📄 file: UserMapperImpl.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\target\generated-sources\annotations\com\taha\minihelpdeskapi\mapper\UserMapperImpl.java
+=========================================
+package com.taha.minihelpdeskapi.mapper;
+
+import com.taha.minihelpdeskapi.dto.user.RequestUser;
+import com.taha.minihelpdeskapi.dto.user.ResponseUser;
+import com.taha.minihelpdeskapi.entity.User;
+import com.taha.minihelpdeskapi.enums.Role;
+import java.time.LocalDateTime;
+import javax.annotation.processing.Generated;
+import org.springframework.stereotype.Component;
+
+@Generated(
+    value = "org.mapstruct.ap.MappingProcessor",
+    date = "2026-10-01T15:12:04+0330",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.12 (Microsoft)"
+)
+@Component
+public class UserMapperImpl implements UserMapper {
+
+    @Override
+    public RequestUser entityToRequest(User entity) {
+        if ( entity == null ) {
+            return null;
+        }
+
+        String username = null;
+        String password = null;
+        Role role = null;
+
+        username = entity.getUsername();
+        password = entity.getPassword();
+        role = entity.getRole();
+
+        RequestUser requestUser = new RequestUser( username, password, role );
+
+        return requestUser;
+    }
+
+    @Override
+    public User requestToEntity(RequestUser dto) {
+        if ( dto == null ) {
+            return null;
+        }
+
+        User user = new User();
+
+        user.setUsername( dto.username() );
+        user.setPassword( dto.password() );
+        user.setRole( dto.role() );
+
+        return user;
+    }
+
+    @Override
+    public void updateEntityWithRequest(RequestUser dto, User entity) {
+        if ( dto == null ) {
+            return;
+        }
+
+        if ( dto.username() != null ) {
+            entity.setUsername( dto.username() );
+        }
+        if ( dto.password() != null ) {
+            entity.setPassword( dto.password() );
+        }
+        if ( dto.role() != null ) {
+            entity.setRole( dto.role() );
+        }
+    }
+
+    @Override
+    public User responseToEntity(ResponseUser dto) {
+        if ( dto == null ) {
+            return null;
+        }
+
+        User user = new User();
+
+        user.setId( dto.id() );
+        user.setCreatedAt( dto.createdAt() );
+        user.setUpdatedAt( dto.updatedAt() );
+        user.setUsername( dto.username() );
+        user.setRole( dto.role() );
+
+        return user;
+    }
+
+    @Override
+    public ResponseUser entityToResponse(User entity) {
+        if ( entity == null ) {
+            return null;
+        }
+
+        Long id = null;
+        LocalDateTime createdAt = null;
+        LocalDateTime updatedAt = null;
+        String username = null;
+        Role role = null;
+
+        id = entity.getId();
+        createdAt = entity.getCreatedAt();
+        updatedAt = entity.getUpdatedAt();
+        username = entity.getUsername();
+        role = entity.getRole();
+
+        ResponseUser responseUser = new ResponseUser( id, createdAt, updatedAt, username, role );
+
+        return responseUser;
+    }
+}
+ 
+ 
+=========================================
+📄 file: pom.xml
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\pom.xml
+=========================================
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.taha</groupId>
+    <artifactId>mini-helpdesk-api</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>mini-helpdesk-api</name>
+    <description>mini-helpdesk-api</description>
+    <url/>
+    <licenses>
+        <license/>
+    </licenses>
+    <developers>
+        <developer/>
+    </developers>
+    <scm>
+        <connection/>
+        <developerConnection/>
+        <tag/>
+        <url/>
+    </scm>
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.5.5.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>1.5.5.Final</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Binding Lombok + MapStruct -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-mapstruct-binding</artifactId>
+            <version>0.2.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Jackson -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-hibernate7</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Java Compile with Annotation Processing -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>1.5.5.Final</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>0.2.0</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <!-- Spring Boot Plugin -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+ 

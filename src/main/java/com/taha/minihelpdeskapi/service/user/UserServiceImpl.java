@@ -3,6 +3,7 @@ package com.taha.minihelpdeskapi.service.user;
 import com.taha.minihelpdeskapi.dto.user.RequestUser;
 import com.taha.minihelpdeskapi.dto.user.ResponseUser;
 import com.taha.minihelpdeskapi.entity.User;
+import com.taha.minihelpdeskapi.exception.UserNotFoundException;
 import com.taha.minihelpdeskapi.mapper.UserMapper;
 import com.taha.minihelpdeskapi.repository.UserRepository;
 import com.taha.minihelpdeskapi.service.base.BaseServiceImpl;
@@ -24,7 +25,20 @@ public class UserServiceImpl extends BaseServiceImpl<
 
     @Override
     public User findByUsername(String username) {
-        var present = repository.findByUsername(username);
-        return present.orElseThrow(NullPointerException::new);
+        return repository.findByUsername(username)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found with username: " + username
+                        )
+                );
     }
+
+    @Override
+    public User findById(Long id) {
+        return repository
+                .findById(id)
+                .orElseThrow(()->new UserNotFoundException("user not found with ID: " + id));
+    }
+
+
 }

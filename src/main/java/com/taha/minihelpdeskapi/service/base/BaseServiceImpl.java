@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 @RequiredArgsConstructor
-public class BaseServiceImpl<
+public abstract class BaseServiceImpl<
         T extends BaseEntity,
         Q,
         S,
@@ -27,11 +27,6 @@ public class BaseServiceImpl<
     public T update (T entity ,Q request) {
         mapper.updateEntityWithRequest(request, entity);
         return repository.save(entity);
-    }
-
-    @Override
-    public T findById(Long id) {
-        return repository.findById(id).orElseThrow(NullPointerException::new);
     }
 
     @Override
