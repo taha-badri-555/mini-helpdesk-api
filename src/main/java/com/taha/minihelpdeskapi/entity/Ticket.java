@@ -3,16 +3,14 @@ package com.taha.minihelpdeskapi.entity;
 import com.taha.minihelpdeskapi.enums.Priority;
 import com.taha.minihelpdeskapi.enums.TicketStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Getter
+@Setter
 @Table(name = "tickets")
 public class Ticket extends BaseEntity {
 
