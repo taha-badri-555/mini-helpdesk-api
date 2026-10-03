@@ -9,6 +9,193 @@ distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-mav
  
  
 =========================================
+📄 file: AuthResponse.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\auth\AuthResponse.java
+=========================================
+package com.taha.minihelpdeskapi.auth;
+
+public record AuthResponse(
+        String token
+) {
+}
+ 
+ 
+=========================================
+📄 file: AuthService.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\auth\AuthService.java
+=========================================
+package com.taha.minihelpdeskapi.auth;
+
+
+import com.taha.minihelpdeskapi.entity.User;
+import com.taha.minihelpdeskapi.enums.Role;
+import com.taha.minihelpdeskapi.service.user.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class AuthService {
+
+    private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+
+    public User register(RegisterRequest request) {
+
+        var user = User.builder()
+                .username(request.username())
+                .password(request.password())
+                .role(Role.USER)
+                .build();
+
+        return userService.save(user);
+    }
+
+    public Authentication authenticate(LoginRequest request) {
+
+        var authenticationToken =
+                new UsernamePasswordAuthenticationToken(
+                        request.username(),
+                        request.password()
+                );
+
+        return authenticationManager.authenticate(authenticationToken);
+    }
+}
+ 
+ 
+=========================================
+📄 file: CustomUserDetailsService.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\auth\CustomUserDetailsService.java
+=========================================
+package com.taha.minihelpdeskapi.auth;
+
+import com.taha.minihelpdeskapi.exception.UserNotFoundException;
+import com.taha.minihelpdeskapi.service.user.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class CustomUserDetailsService implements UserDetailsService {
+
+    private final UserService userService;
+
+    @Override
+    public UserDetails loadUserByUsername(String username)
+            throws UsernameNotFoundException {
+
+        try {
+            var user = userService.findByUsername(username);
+
+            return User.builder()
+                    .username(user.getUsername())
+                    .password(user.getPassword())
+                    .roles(user.getRole().name())
+                    .build();
+
+        } catch (UserNotFoundException e) {
+            throw new UsernameNotFoundException(e.getMessage());
+        }
+    }
+}
+ 
+ 
+=========================================
+📄 file: LoginRequest.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\auth\LoginRequest.java
+=========================================
+package com.taha.minihelpdeskapi.auth;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record LoginRequest(
+        @NotBlank
+        @Size(min = 6)
+        String username,
+
+        @NotBlank
+        @Size(min = 4, max = 4)
+        String password
+) {
+}
+ 
+ 
+=========================================
+📄 file: RegisterRequest.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\auth\RegisterRequest.java
+=========================================
+package com.taha.minihelpdeskapi.auth;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record RegisterRequest(
+
+        @NotBlank
+        @Size(min = 6)
+        String username,
+
+        @NotBlank
+        @Size(min = 4, max = 4)
+        String password
+        ) {
+}
+ 
+ 
+=========================================
+📄 file: SecurityConfig.java
+📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\config\SecurityConfig.java
+=========================================
+package com.taha.minihelpdeskapi.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class SecurityConfig {
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration configuration
+    ) throws Exception {
+
+        return configuration.getAuthenticationManager();
+    }
+}
+ 
+ 
+=========================================
 📄 file: TicketController.java
 📂 path: C:\Users\Flower\IdeaProjects\mini-helpdesk-api\src\main\java\com\taha\minihelpdeskapi\controller\TicketController.java
 =========================================
@@ -791,6 +978,7 @@ import com.taha.minihelpdeskapi.exception.UserNotFoundException;
 import com.taha.minihelpdeskapi.mapper.UserMapper;
 import com.taha.minihelpdeskapi.repository.UserRepository;
 import com.taha.minihelpdeskapi.service.base.BaseServiceImpl;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -803,8 +991,30 @@ public class UserServiceImpl extends BaseServiceImpl<
         UserMapper,
         UserRepository>
         implements UserService {
-    public UserServiceImpl(UserRepository repository, UserMapper mapper) {
+    private final PasswordEncoder passwordEncoder;
+    public UserServiceImpl(UserRepository repository, UserMapper mapper, PasswordEncoder passwordEncoder) {
         super(repository, mapper);
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Override
+    public User save(User entity) {
+        entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+        return super.save(entity);
+    }
+
+    @Override
+    public User update(User user, RequestUser request) {
+
+        mapper.updateEntityWithRequest(request, user);
+
+        if (request.password() != null && !request.password().isBlank()) {
+            user.setPassword(
+                    passwordEncoder.encode(request.password())
+            );
+        }
+
+        return repository.save(user);
     }
 
     @Override
