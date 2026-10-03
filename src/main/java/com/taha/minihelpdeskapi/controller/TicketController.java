@@ -6,6 +6,7 @@ import com.taha.minihelpdeskapi.dto.ticket.UpdateTicketStatusRequest;
 import com.taha.minihelpdeskapi.enums.TicketStatus;
 import com.taha.minihelpdeskapi.mapper.TicketsMapper;
 import com.taha.minihelpdeskapi.service.ticket.TicketService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +38,7 @@ public class TicketController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ResponseTicket> updateTicketById
-            (@PathVariable Long id, @RequestBody RequestTicket requestTicket) {
+            (@PathVariable Long id,@Valid @RequestBody RequestTicket requestTicket) {
         var byId = ticketService.findById(id);
         var update = ticketService.update(byId, requestTicket);
         return ResponseEntity.ok(ticketMapper.entityToResponse(update));
@@ -46,7 +47,7 @@ public class TicketController {
 
     @PostMapping("{UserId}")
     public ResponseEntity<ResponseTicket> saveTicket
-            (@PathVariable("UserId") Long userId, @RequestBody RequestTicket requestTicket) {
+            (@PathVariable("UserId") Long userId,@Valid @RequestBody RequestTicket requestTicket) {
         var ticket = ticketService.createTicket(userId, requestTicket);
         var responseTicket = ticketMapper.entityToResponse(ticket);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseTicket);
@@ -65,7 +66,7 @@ public class TicketController {
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<ResponseTicket> updateTicketStatus(
-            @PathVariable Long id, @RequestBody UpdateTicketStatusRequest status) {
+            @PathVariable Long id,@Valid @RequestBody UpdateTicketStatusRequest status) {
         var ticket = ticketService.updateStatus(id, status);
         return ResponseEntity.ok(ticketMapper.entityToResponse(ticket));
     }

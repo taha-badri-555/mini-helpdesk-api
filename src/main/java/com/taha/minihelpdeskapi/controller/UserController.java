@@ -4,6 +4,7 @@ import com.taha.minihelpdeskapi.dto.user.RequestUser;
 import com.taha.minihelpdeskapi.dto.user.ResponseUser;
 import com.taha.minihelpdeskapi.mapper.UserMapper;
 import com.taha.minihelpdeskapi.service.user.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ public class UserController {
     private final UserMapper userMapper;
 
     @PostMapping
-    public ResponseEntity<ResponseUser> createUser(@RequestBody RequestUser requestUser) {
+    public ResponseEntity<ResponseUser> createUser(@Valid @RequestBody RequestUser requestUser) {
         var entity = userMapper.requestToEntity(requestUser);
         var save = userService.save(entity);
         var responseUser = userMapper.entityToResponse(save);
@@ -32,7 +33,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseUser> updateUser(@PathVariable("id") Long id, @RequestBody RequestUser requestUser) {
+    public ResponseEntity<ResponseUser> updateUser(@PathVariable("id") Long id,@Valid @RequestBody RequestUser requestUser) {
         var user = userService.findById(id);
         var update = userService.update(user, requestUser);
         var responseUser = userMapper.entityToResponse(update);
