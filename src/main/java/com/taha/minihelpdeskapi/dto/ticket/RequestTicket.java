@@ -6,7 +6,6 @@ import lombok.Builder;
 
 @Builder
 public record RequestTicket(
-        Long id,
         String title,
         String description,
         TicketStatus status,
